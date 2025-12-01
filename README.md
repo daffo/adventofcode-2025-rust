@@ -2,8 +2,6 @@
 
 My solutions to [Advent of Code 2025](https://adventofcode.com/2025) written in Rust.
 
-This is a learning project where I'm using Advent of Code to learn Rust while on vacation.
-
 ## Structure
 
 This project is organized as a single Rust binary with a module for each day:
@@ -36,12 +34,6 @@ cargo run -- 1
 cargo run -- 2
 ```
 
-For faster execution (optimized build):
-
-```bash
-cargo run --release -- 1
-```
-
 ## Development
 
 ### Prerequisites
@@ -51,45 +43,19 @@ cargo run --release -- 1
 
 ### Adding a New Day
 
-1. Create a new module file `src/days/dayXX.rs` using the template:
+1. Create a new module file `src/days/dayXX.rs` using the template from `day00.rs` or `day01.rs`
+
+2. Add one line to the `register_days!` macro in `src/days/mod.rs`:
 
 ```rust
-pub fn solve(input: &str) {
-    let part1_result = part1(input);
-    let part2_result = part2(input);
-
-    println!("Part 1: {}", part1_result);
-    println!("Part 2: {}", part2_result);
-}
-
-fn part1(input: &str) -> String {
-    // TODO: Implement part 1
-    "Not implemented yet".to_string()
-}
-
-fn part2(input: &str) -> String {
-    // TODO: Implement part 2
-    "Not implemented yet".to_string()
+register_days! {
+    0 => day00,
+    1 => day01,
+    XX => dayXX,  // Just add this line!
 }
 ```
 
-2. Add the module to `src/days/mod.rs`:
-
-```rust
-pub mod dayXX;
-```
-
-3. Add the day to the match statement in `src/main.rs`:
-
-```rust
-match day {
-    1 => days::day01::solve(&input),
-    XX => days::dayXX::solve(&input),
-    // ...
-}
-```
-
-4. Create your input file at `inputs/XX.txt`
+3. Create your input file at `inputs/XX.txt`
 
 ### Running Tests
 

@@ -17,7 +17,7 @@ flamegraph.svg
 perf.data
 perf.data.old
 
-# Input files (common for Advent of Code)
+# Input files
 # Personal puzzle inputs should not be shared per AoC rules
 inputs/*.txt
 !inputs/.gitkeep
