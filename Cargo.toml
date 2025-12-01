@@ -1,12 +1,7 @@
-[workspace]
-resolver = "2"
-members = [
-    "day01",
-]
-
-[workspace.package]
+[package]
+name = "adventofcode-2025"
 version = "0.1.0"
-edition = "2024"
-authors = ["Dario Serra"]
+edition = "2021"
+authors = ["daffo <dafffo@gmail.com>"]
 
-[workspace.dependencies]
+[dependencies]

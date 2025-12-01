@@ -6,16 +6,21 @@ This is a learning project where I'm using Advent of Code to learn Rust while on
 
 ## Structure
 
-This project is organized as a Cargo workspace, with each day's challenge in its own package:
+This project is organized as a single Rust binary with a module for each day:
 
 ```
 .
-├── day01/
-│   ├── src/
-│   │   └── main.rs
-│   └── Cargo.toml
-├── day02/
-├── ...
+├── src/
+│   ├── main.rs          # Main entrypoint
+│   └── days/
+│       ├── mod.rs
+│       ├── day01.rs
+│       ├── day02.rs
+│       └── ...
+├── inputs/
+│   ├── 1.txt           # Input for day 1
+│   ├── 2.txt           # Input for day 2
+│   └── ...
 └── Cargo.toml
 ```
 
@@ -24,13 +29,17 @@ This project is organized as a Cargo workspace, with each day's challenge in its
 To run a specific day's solution:
 
 ```bash
-cargo run --bin day01
+# Run day 1
+cargo run -- 1
+
+# Run day 2
+cargo run -- 2
 ```
 
-To run all solutions:
+For faster execution (optimized build):
 
 ```bash
-cargo build --release
+cargo run --release -- 1
 ```
 
 ## Development
@@ -42,25 +51,51 @@ cargo build --release
 
 ### Adding a New Day
 
-Create a new day package:
+1. Create a new module file `src/days/dayXX.rs` using the template:
+
+```rust
+pub fn solve(input: &str) {
+    let part1_result = part1(input);
+    let part2_result = part2(input);
+
+    println!("Part 1: {}", part1_result);
+    println!("Part 2: {}", part2_result);
+}
+
+fn part1(input: &str) -> String {
+    // TODO: Implement part 1
+    "Not implemented yet".to_string()
+}
+
+fn part2(input: &str) -> String {
+    // TODO: Implement part 2
+    "Not implemented yet".to_string()
+}
+```
+
+2. Add the module to `src/days/mod.rs`:
+
+```rust
+pub mod dayXX;
+```
+
+3. Add the day to the match statement in `src/main.rs`:
+
+```rust
+match day {
+    1 => days::day01::solve(&input),
+    XX => days::dayXX::solve(&input),
+    // ...
+}
+```
+
+4. Create your input file at `inputs/XX.txt`
+
+### Running Tests
 
 ```bash
-cargo new --bin dayXX
+cargo test
 ```
-
-Then add it to the workspace members in the root `Cargo.toml`:
-
-```toml
-[workspace]
-members = [
-    "day01",
-    "dayXX",
-]
-```
-
-## Progress
-
-- [x] Day 01:
 
 ## License
 

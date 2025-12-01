@@ -18,8 +18,9 @@ perf.data
 perf.data.old
 
 # Input files (common for Advent of Code)
-**/input.txt
-**/inputs/
+# Personal puzzle inputs should not be shared per AoC rules
+inputs/*.txt
+!inputs/.gitkeep
 
 # Backup files
 *.bak
