@@ -29,6 +29,7 @@ fn main() {
     println!("Running Day {}...\n", day);
 
     match day {
+        0 => days::day00::solve(&input),
         1 => days::day01::solve(&input),
         _ => {
             eprintln!("Day {} not implemented yet", day);
