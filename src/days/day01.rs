@@ -1,17 +1,26 @@
-pub fn solve(input: &str) {
-    let result = rotate(input);
+use std::collections::HashMap;
+use std::sync::LazyLock;
 
-    println!("Unlocks: {}", result);
+static DIRECTION_MAP: LazyLock<HashMap<char, i32>> = LazyLock::new(|| {
+    let mut map = HashMap::new();
+    map.insert('R', 1);
+    map.insert('L', -1);
+    map
+});
+
+pub fn solve(input: &str) {
+    let (unlocks, global_unlocks) = rotate(input);
+
+    println!("Unlocks: {}", unlocks);
+    println!("Global Unlocks: {}", global_unlocks);
 }
 
-fn rotate(input: &str) -> i32 {
-    use std::collections::HashMap;
-
-    let direction_map: HashMap<char, i32> = [('R', 1), ('L', -1)].iter().cloned().collect();
+fn rotate(input: &str) -> (i32, i32) {
 
     let lines: Vec<&str> = input.trim().lines().collect();
-    let mut tracker = 50;
+    let mut spinner_position = 50;
     let mut unlocks = 0;
+    let mut global_unlocks = 0;
 
     for line in lines {
         if !validate_action(line) {
@@ -20,29 +29,38 @@ fn rotate(input: &str) -> i32 {
 
         let direction = line.chars().next().unwrap();
         let distance: i32 = line[1..].parse().unwrap();
-        let mult = direction_map.get(&direction).unwrap();
+        let mult = DIRECTION_MAP.get(&direction).unwrap();
 
-        tracker = (tracker + (distance * mult)) % 100;
+        let initial_position = spinner_position;
 
-        if tracker == 0 {
+        global_unlocks += distance / 100;
+
+        if (spinner_position > 0 && spinner_position + (distance * mult) % 100 < 0) || spinner_position + (distance * mult) % 100 > 100 {
+            global_unlocks += 1;
+        }
+
+        spinner_position = (spinner_position + (distance * mult)).rem_euclid(100);
+
+        if spinner_position == 0 {
             unlocks += 1;
+            if initial_position == 0 {
+                global_unlocks -= 1;
+            }
         }
     }
 
-    unlocks
+    global_unlocks += unlocks;
+
+    (unlocks, global_unlocks)
 }
 
 fn validate_action(action: &str) -> bool {
-    use std::collections::HashMap;
-
-    let direction_map: HashMap<char, i32> = [('R', 1), ('L', -1)].iter().cloned().collect();
-
     if action.len() < 2 {
         return false;
     }
 
     let direction = action.chars().next().unwrap();
-    if !direction_map.contains_key(&direction) {
+    if !DIRECTION_MAP.contains_key(&direction) {
         return false;
     }
 
@@ -60,11 +78,18 @@ mod tests {
     #[test]
     fn test_rotate() {
         let test_cases = [
-            ("", 0),
-            ("R1", 0),
-            ("R50", 1),
-            ("R50\nL100", 2),
-            ("R50\nL100\nR123", 2),
+            ("", (0, 0)),
+            ("R1", (0, 0)),
+            ("R50", (1, 1)),
+            ("L100", (0, 1)),
+            ("R100", (0, 1)),
+            ("L51", (0, 1)),
+            ("R51", (0, 1)),
+            ("R50\nL100", (2, 2)),
+            ("R50\nL100\nR123", (2, 3)),
+            ("R49\nR2", (0, 1)),
+            ("L49\nL2", (0, 1)),
+            ("L68\nL30\nR48\nL5\nR60\nL55\nL1\nL99\nR14\nL82", (3, 6)),
         ];
 
         for (input, expected) in test_cases {
