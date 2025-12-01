@@ -1,0 +1,25 @@
+# Rust build artifacts
+/target
+**/target/
+Cargo.lock
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Debug and profiling
+*.pdb
+flamegraph.svg
+perf.data
+perf.data.old
+
+# Input files (common for Advent of Code)
+**/input.txt
+**/inputs/
+
+# Backup files
+*.bak
