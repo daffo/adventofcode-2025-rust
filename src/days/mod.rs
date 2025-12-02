@@ -17,4 +17,5 @@ macro_rules! register_days {
 register_days! {
     0 => day00,
     1 => day01,
+    2 => day02,
 }
