@@ -3,6 +3,7 @@ mod days;
 use std::env;
 use std::fs;
 use std::path::Path;
+use std::time::Instant;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -28,5 +29,9 @@ fn main() {
 
     println!("Running Day {}...\n", day);
 
+    let start = Instant::now();
     days::solve_day(day, &input);
+    let duration = start.elapsed();
+
+    println!("\n⏱️  Completed in {:?}", duration);
 }

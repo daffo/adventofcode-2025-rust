@@ -1,12 +1,24 @@
 pub fn solve(input: &str) {
-    let matrix = parse_to_matrix(input);
+    let mut matrix = parse_to_matrix(input);
     println!("Matrix size: {}x{}", matrix.len(), matrix[0].len());
 
-    let result = find_accessible_rolls(&matrix);
-    println!("Accessible rolls: {}", result);
+    let part1_result = find_accessible_rolls(&mut matrix);
+    println!("Accessible rolls: {}", part1_result);
+
+    let mut part2_total = part1_result;
+    loop {
+        remove_marked_papers(&mut matrix);
+        let removed = find_accessible_rolls(&mut matrix);
+        if removed > 0 {
+            part2_total += removed;
+        } else {
+            break;
+        }
+    }
+    println!("Total accessible rolls: {}", part2_total);
 }
 
-fn parse_to_matrix(input: &str) -> Vec<Vec<u8>> {
+fn parse_to_matrix(input: &str) -> Vec<Vec<i8>> {
     input
         .lines()
         .map(|line| {
@@ -21,7 +33,7 @@ fn parse_to_matrix(input: &str) -> Vec<Vec<u8>> {
         .collect()
 }
 
-fn find_accessible_rolls(matrix: &[Vec<u8>]) -> i64 {
+fn find_accessible_rolls(matrix: &mut Vec<Vec<i8>>) -> i64 {
     let mut accessible_rolls = 0;
     let mut sliding_window = vec![vec![0u8; 3]; 3];
     let mut current_rolls;
@@ -37,8 +49,11 @@ fn find_accessible_rolls(matrix: &[Vec<u8>]) -> i64 {
             let roll_delta = advance_sliding_window(&mut sliding_window, matrix, row, col, rows, cols);
             current_rolls += roll_delta;
 
+            // Check if center is a paper (1) with < 5 papers around it
             if sliding_window[1][1] == 1 && current_rolls < 5 {
                 accessible_rolls += 1;
+                // Mark as removed in the matrix
+                matrix[row][col] = -1;
             }
         }
     }
@@ -48,19 +63,20 @@ fn find_accessible_rolls(matrix: &[Vec<u8>]) -> i64 {
 
 fn reset_sliding_window(
     sliding_window: &mut Vec<Vec<u8>>,
-    matrix: &[Vec<u8>],
+    matrix: &Vec<Vec<i8>>,
     row: usize,
     rows: usize,
 ) -> i32 {
     *sliding_window = vec![vec![0u8; 3]; 3];
 
-    // Initialize rightmost column with values from column 0 of the matrix
+    // Initialize rightmost column with absolute values from column 0 of the matrix
     let mut current_rolls = 0;
     for r in 0..3 {
         let matrix_row = row as i32 + r as i32 - 1;
         if matrix_row >= 0 && matrix_row < rows as i32 {
-            sliding_window[r][2] = matrix[matrix_row as usize][0];
-            current_rolls += sliding_window[r][2] as i32;
+            let val = matrix[matrix_row as usize][0].abs() as u8;
+            sliding_window[r][2] = val;
+            current_rolls += val as i32;
         }
     }
 
@@ -69,7 +85,7 @@ fn reset_sliding_window(
 
 fn advance_sliding_window(
     sliding_window: &mut Vec<Vec<u8>>,
-    matrix: &[Vec<u8>],
+    matrix: &Vec<Vec<i8>>,
     row: usize,
     col: usize,
     rows: usize,
@@ -85,18 +101,29 @@ fn advance_sliding_window(
         sliding_window[r][0] = sliding_window[r][1];
         sliding_window[r][1] = sliding_window[r][2];
 
-        // Fill the right column with new value from matrix at col+1
+        // Fill the right column with absolute value from matrix at col+1
         let matrix_row = row as i32 + r as i32 - 1;
         let matrix_col = col + 1;
         if matrix_row >= 0 && matrix_row < rows as i32 && matrix_col < cols {
-            sliding_window[r][2] = matrix[matrix_row as usize][matrix_col];
-            roll_delta += sliding_window[r][2] as i32;
+            let val = matrix[matrix_row as usize][matrix_col].abs() as u8;
+            sliding_window[r][2] = val;
+            roll_delta += val as i32;
         } else {
             sliding_window[r][2] = 0;
         }
     }
 
     roll_delta
+}
+
+fn remove_marked_papers(matrix: &mut Vec<Vec<i8>>) {
+    for row in matrix.iter_mut() {
+        for cell in row.iter_mut() {
+            if *cell == -1 {
+                *cell = 0;
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -171,21 +198,38 @@ mod tests {
 
     #[test]
     fn test_find_accessible_rolls() {
-        let matrix = vec![vec![0, 1], vec![1, 0]];
-        assert_eq!(find_accessible_rolls(&matrix), 2);
+        let mut matrix = vec![vec![0, 1], vec![1, 0]];
+        assert_eq!(find_accessible_rolls(&mut matrix), 2);
 
-        let matrix = vec![
+        let mut matrix = vec![
             vec![1, 1, 1],
             vec![1, 1, 1],
             vec![1, 1, 1],
         ];
-        assert_eq!(find_accessible_rolls(&matrix), 4);
+        assert_eq!(find_accessible_rolls(&mut matrix), 4);
     }
 
     #[test]
     fn test_solve_10x10() {
         let input = "..@@.@@@@.\n@@@.@.@.@@\n@@@@@.@.@@\n@.@@@@..@.\n@@.@@@@.@@\n.@@@@@@@.@\n.@.@.@.@@@\n@.@@@.@@@@\n.@@@@@@@@.\n@.@.@@@.@.";
-        let matrix = parse_to_matrix(input);
-        assert_eq!(find_accessible_rolls(&matrix), 13);
+        let mut matrix = parse_to_matrix(input);
+        assert_eq!(find_accessible_rolls(&mut matrix), 13);
+    }
+
+    #[test]
+    fn test_remove_marked_papers() {
+        let mut matrix = vec![
+            vec![0, 1, -1],
+            vec![-1, 1, 0],
+            vec![1, -1, 1],
+        ];
+
+        remove_marked_papers(&mut matrix);
+
+        assert_eq!(matrix, vec![
+            vec![0, 1, 0],
+            vec![0, 1, 0],
+            vec![1, 0, 1],
+        ]);
     }
 }
