@@ -20,4 +20,5 @@ register_days! {
     2 => day02,
     3 => day03,
     4 => day04_compatible,
+    5 => day05,
 }
