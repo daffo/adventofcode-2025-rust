@@ -3,7 +3,8 @@ pub fn solve(input: &str) {
     
     let part1_result = solve_part1(&matrix, &operators);
     println!("Part 1: {}", part1_result);
-    
+
+    let (matrix, operators) = parse_input_with_spaces(input);
     let part2_result = solve_part2(&matrix, &operators);
     println!("Part 2: {}", part2_result);
 }
@@ -26,6 +27,37 @@ fn parse_input(input: &str) -> (Vec<Vec<u64>>, Vec<char>) {
         })
         .collect();
     
+    (matrix, operators)
+}
+
+fn parse_input_with_spaces(input: &str) -> (Vec<Vec<String>>, Vec<Option<char>>) {
+    let lines: Vec<&str> = input.lines().collect();
+
+    // Last line contains operators with spaces preserved
+    let operators: Vec<Option<char>> = if let Some(last_line) = lines.last() {
+        last_line.chars()
+            .map(|c| {
+                if c == ' ' {
+                    None
+                } else {
+                    Some(c)
+                }
+            })
+            .collect()
+    } else {
+        Vec::new()
+    };
+
+    // All lines except last - store each character as string
+    let matrix: Vec<Vec<String>> = lines[..lines.len() - 1]
+        .iter()
+        .map(|line| {
+            line.chars()
+                .map(|c| c.to_string())
+                .collect()
+        })
+        .collect();
+
     (matrix, operators)
 }
 
@@ -54,9 +86,60 @@ fn solve_part1(matrix: &[Vec<u64>], operators: &[char]) -> u64 {
     results.iter().sum()
 }
 
-fn solve_part2(_matrix: &[Vec<u64>], _operators: &[char]) -> u64 {
-    // TODO: Implement part 2
-    0
+fn solve_part2(matrix: &[Vec<String>], operators: &[Option<char>]) -> u64 {
+    // Find max row length
+    let max_len = matrix.iter().map(|row| row.len()).max().unwrap_or(0);
+    
+    let mut results = Vec::new();
+    let mut current_nums = Vec::new();
+    
+    // Process from RIGHT to LEFT
+    for col in (0..max_len.max(operators.len())).rev() {
+        // First collect vertical number at this position (top to bottom)
+        let mut column_digits = String::new();
+        for row in matrix {
+            if col < row.len() {
+                let ch = &row[col];
+                if ch != " " {
+                    column_digits.push_str(ch);
+                }
+            }
+        }
+        
+        // If we have a number, add it to current group
+        if !column_digits.is_empty() {
+            if let Ok(num) = column_digits.parse::<u64>() {
+                current_nums.push(num);
+            }
+        }
+        
+        // Then check if there's an operator at this position
+        let op_at_pos = if col < operators.len() {
+            operators[col]
+        } else {
+            None
+        };
+        
+        // If there's an operator, apply it to accumulated numbers (including this column's number)
+        if let Some(op) = op_at_pos {
+            if !current_nums.is_empty() {
+                let result = apply_operation(&current_nums, op);
+                results.push(result);
+                current_nums.clear();
+            }
+        }
+    }
+    
+    // Sum all results
+    results.iter().sum()
+}
+
+fn apply_operation(numbers: &[u64], operator: char) -> u64 {
+    if operator == '+' {
+        numbers.iter().sum()
+    } else {
+        numbers.iter().product()
+    }
 }
 
 #[cfg(test)]
@@ -98,5 +181,43 @@ mod tests {
         
         let part1 = solve_part1(&matrix, &operators);
         assert_eq!(part1, 4277556);
+    }
+    
+    #[test]
+    fn test_parse_input_with_spaces() {
+        let input = "123 328  51 64\n 45 64  387 23\n  6 98  215 314\n*   +   *   +";
+        let (matrix, operators) = parse_input_with_spaces(input);
+        
+        // Check matrix preserves all characters including spaces
+        println!("Matrix rows: {}", matrix.len());
+        for (i, row) in matrix.iter().enumerate() {
+            println!("Row {}: len={}, {:?}", i, row.len(), row);
+        }
+        
+        // Check operators preserve positions
+        println!("Operators: len={}, {:?}", operators.len(), operators);
+        
+        // First row: "123 328  51 64"
+        assert_eq!(matrix[0].len(), 14); // Length of the line
+        assert_eq!(matrix[0][0], "1");
+        assert_eq!(matrix[0][1], "2");
+        assert_eq!(matrix[0][2], "3");
+        assert_eq!(matrix[0][3], " ");
+        
+        // Operators line: "*   +   *   +"
+        assert_eq!(operators[0], Some('*'));
+        assert_eq!(operators[1], None); // space
+        assert_eq!(operators[2], None); // space
+        assert_eq!(operators[3], None); // space
+        assert_eq!(operators[4], Some('+'));
+    }
+    
+    #[test]
+    fn test_solve_part2() {
+        let input = "123 328  51 64\n 45 64  387 23\n  6 98  215 314\n*   +   *   +";
+        let (matrix, operators) = parse_input_with_spaces(input);
+        
+        let result = solve_part2(&matrix, &operators);
+        assert_eq!(result, 3263827);
     }
 }
